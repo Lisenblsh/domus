@@ -18,9 +18,9 @@ namespace Domus.Controllers
         {
             _db = db;
         }
-        [HttpPost("singin")]
-        public async Task<IActionResult> SingIn([FromBody] UserCredentials? userCredentials = null)
-        {   if (userCredentials == null) return Unauthorized();
+        [HttpPost("login")]
+        public async Task<IActionResult> LogIn([FromBody] UserCredentials? userCredentials = null)
+        {   if (userCredentials == null) return BadRequest();
 
             var user = await _db.Users.FirstOrDefaultAsync(user => user.Username == userCredentials.Username
                                                 && user.Password == userCredentials.Password);
@@ -29,21 +29,37 @@ namespace Domus.Controllers
                 HttpContext.Session.SetInt32("userId", user.Id);
                 return Ok($"old - {user.Id} {HttpContext.Session.Id}");
             }
-            else
-            {
-                var newUser = new UserCredentials(userCredentials.Username, userCredentials.Password);
-                _db.Users.Add(newUser);
-                _db.SaveChanges();
-                HttpContext.Session.SetInt32("userId", newUser.Id);
-                return Ok($"new - {newUser.Id} {HttpContext.Session.Id}");
-            }
+            
             return Unauthorized();
         }
 
-        [HttpPost("signup")]
+        [HttpGet("logout")]
+        public async Task<IActionResult> LogOut()
+        {
+            var userId = HttpContext.Session.GetInt32("userId");
+
+            
+
+            HttpContext.Session.Clear();
+
+            return Ok();
+        }
+
+        [HttpPost("singup")]
         public async Task<IActionResult> SingUp([FromBody] UserCredentials? userCredentials = null)
         {
+            if(userCredentials == null) return BadRequest();
+
+            var userInDb = await _db.Users.FirstOrDefaultAsync(user => user.Username == userCredentials.Username);
+
+            if (userInDb != null) return Conflict($"User with login {userCredentials.Username} in DB");
+
+            var newUser = new UserCredentials(userCredentials.Username, userCredentials.Password);
+            _db.Users.Add(newUser);
+            _db.SaveChanges();
+            HttpContext.Session.SetInt32("userId", newUser.Id);
             
+            return Ok($"new - {newUser.Id} {HttpContext.Session.Id}");
         }
 
         [HttpGet("me")]
