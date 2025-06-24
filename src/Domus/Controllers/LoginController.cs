@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Domus.Models;
+using Domus.Models.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +20,10 @@ namespace Domus.Controllers
             _db = db;
         }
         [HttpPost("login")]
-        public async Task<IActionResult> LogIn([FromBody] UserCredentials? userCredentials = null)
+        public async Task<IActionResult> LogIn([FromBody] UserCredentialsDto? userCredentials = null)
         {   if (userCredentials == null) return BadRequest();
 
-            var user = await _db.Users.FirstOrDefaultAsync(user => user.Username == userCredentials.Username
+            var user = await _db.UserCredentials.FirstOrDefaultAsync(user => user.Username == userCredentials.Username
                                                 && user.Password == userCredentials.Password);
             if (user != null)
             {
@@ -46,16 +47,16 @@ namespace Domus.Controllers
         }
 
         [HttpPost("singup")]
-        public async Task<IActionResult> SingUp([FromBody] UserCredentials? userCredentials = null)
+        public async Task<IActionResult> SingUp([FromBody] UserCredentialsDto? userCredentials = null)
         {
             if(userCredentials == null) return BadRequest();
 
-            var userInDb = await _db.Users.FirstOrDefaultAsync(user => user.Username == userCredentials.Username);
+            var userInDb = await _db.UserCredentials.FirstOrDefaultAsync(user => user.Username == userCredentials.Username);
 
             if (userInDb != null) return Conflict($"User with login {userCredentials.Username} in DB");
 
-            var newUser = new UserCredentials(userCredentials.Username, userCredentials.Password);
-            _db.Users.Add(newUser);
+            var newUser = new UserCredentialsDto(userCredentials.Username, userCredentials.Password);
+            _db.UserCredentials.Add(newUser);
             _db.SaveChanges();
             HttpContext.Session.SetInt32("userId", newUser.Id);
             
