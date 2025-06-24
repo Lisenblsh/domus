@@ -1,4 +1,4 @@
-src/Domus/bin
+src/Domus/bin/Debug/net8.0
 src/Domus/obj
-src/Domus/Migrations
 .vscode
+src/Domus/Migrations

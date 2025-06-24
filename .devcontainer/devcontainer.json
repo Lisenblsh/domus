@@ -12,7 +12,8 @@
         "ms-azuretools.vscode-docker",
         "postman.postman-for-vscode",
         "ms-dotnettools.csdevkit",
-        "ms-dotnettools.vscodeintellicode-csharp"
+        "ms-dotnettools.vscodeintellicode-csharp",
+        "ckolkman.vscode-postgres"
       ]
     }
   }
