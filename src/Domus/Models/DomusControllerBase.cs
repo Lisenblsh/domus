@@ -57,7 +57,7 @@ namespace Domus.Models
         protected void CheckAccess()
         {
             var userId = HttpContext.Session.GetInt32("userId");
-            _userService.CheckUser(userId);
+            _userService.CheckUserAccess(userId);
         }
     }
 }

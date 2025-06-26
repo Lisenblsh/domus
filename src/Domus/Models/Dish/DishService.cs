@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Domus.Models.Dish;
 
-public class DishService(NpgSlqContext db) : IBaseService<DishDto>
+public class DishService(NpgSqlContext db) : IBaseService<DishDto>
 {
-    private readonly NpgSlqContext _db = db;
+    private readonly NpgSqlContext _db = db;
     public List<DishDto> GetList()
     {
         return _db.Dishes.ToList();
@@ -26,11 +26,11 @@ public class DishService(NpgSlqContext db) : IBaseService<DishDto>
         return _db.Dishes.Where(dish => dish.Title == title).ToList();
     }
 
-    public bool Add(DishDto entity)
+    public int Add(DishDto entity)
     {
         _db.Dishes.Add(entity);
         _db.SaveChanges();
-        return true;
+        return entity.Id;
     }
 
     public bool Delete(int id)

@@ -12,15 +12,13 @@ namespace Domus.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class LoginController : ControllerBase
+    public class LoginController(NpgSqlContext db, UserService userService) : ControllerBase
     {
-        private readonly NpgSqlContext _db;
-        public LoginController(NpgSqlContext db)
-        {
-            _db = db;
-        }
+        private readonly NpgSqlContext _db = db;
+        private readonly UserService _userService = userService;
+
         [HttpPost("login")]
-        public async Task<IActionResult> LogIn([FromBody] UserCredentialsDto? userCredentials = null)
+        public async Task<IActionResult> LogIn([FromBody] FrontendModels.UserCredentialsDto? userCredentials = null)
         {   if (userCredentials == null) return BadRequest();
 
             var user = await _db.UserCredentials.FirstOrDefaultAsync(user => user.Username == userCredentials.Username
@@ -47,20 +45,20 @@ namespace Domus.Controllers
         }
 
         [HttpPost("singup")]
-        public async Task<IActionResult> SingUp([FromBody] UserCredentialsDto? userCredentials = null)
+        public async Task<IActionResult> SingUp([FromBody] FrontendModels.CreateUserDto? userCredentials = null)
         {
             if(userCredentials == null) return BadRequest();
 
-            var userInDb = await _db.UserCredentials.FirstOrDefaultAsync(user => user.Username == userCredentials.Username);
+            if (_userService.CheckUser(userCredentials.Username))
+                return Conflict($"User with login {userCredentials.Username} in DB");
 
-            if (userInDb != null) return Conflict($"User with login {userCredentials.Username} in DB");
-
-            var newUser = new UserCredentialsDto(userCredentials.Username, userCredentials.Password);
-            _db.UserCredentials.Add(newUser);
-            _db.SaveChanges();
-            HttpContext.Session.SetInt32("userId", newUser.Id);
+            var userId = _userService.Add(new UserDto
+            {
+                Name = userCredentials.Name,
+                Credentials = new UserCredentialsDto(userCredentials.Username, userCredentials.Password)
+            });
             
-            return Ok($"new - {newUser.Id} {HttpContext.Session.Id}");
+            return Ok($"new - {userId} {HttpContext.Session.Id}");
         }
 
         [HttpGet("me")]

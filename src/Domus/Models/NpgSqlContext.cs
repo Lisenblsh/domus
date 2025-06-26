@@ -15,7 +15,7 @@ public class NpgSqlContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<UserDto>()
             .HasOne(x => x.Credentials)
             .WithOne(x => x.User)
-            .HasForeignKey<UserCredentialsDto>(x => x.User.Id)
+            .HasForeignKey<UserCredentialsDto>(x => x.UserId)
             .IsRequired();
 
         base.OnModelCreating(modelBuilder);

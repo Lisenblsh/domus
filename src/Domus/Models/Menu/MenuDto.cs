@@ -1,4 +1,5 @@
 using System;
+using Domus.Models.Dish;
 using Domus.Models.Recipe;
 
 namespace Domus.Models.Menu;

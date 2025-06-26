@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Domus.Models.User;
 
-public class UserService(NpgSlqContext db): IBaseService<UserDto>
+public class UserService(NpgSqlContext db): IBaseService<UserDto>
 {
-    public readonly NpgSlqContext _db = db;
+    public readonly NpgSqlContext _db = db;
 
-    public bool CheckUser(int? id)
+    public bool CheckUserAccess(int? id)
     {
         if (id == null || !_db.Users.Where(user => user.Id == id).Any())
         {
@@ -17,6 +17,11 @@ public class UserService(NpgSlqContext db): IBaseService<UserDto>
         {
             return true;
         }
+    }
+
+    public bool CheckUser(string username)
+    {
+        return _db.UserCredentials.Where(user => user.Username == username).Any();
     }
 
     public List<UserDto> GetList()
@@ -39,11 +44,12 @@ public class UserService(NpgSlqContext db): IBaseService<UserDto>
         return _db.Users.Where(user => user.Name == title).ToList();
     }
 
-    public bool Add(UserDto entity)
+    public int Add(UserDto entity)
     {
+        
         _db.Users.Add(entity);
         _db.SaveChanges();
-        return true;
+        return entity.Id;
     }
 
     public bool Delete(int id)

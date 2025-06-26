@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Domus.Models.Product;
 
-public class ProductService(NpgSlqContext db) : IBaseService<ProductDto>
+public class ProductService(NpgSqlContext db) : IBaseService<ProductDto>
 {
-    private readonly NpgSlqContext _db = db;
+    private readonly NpgSqlContext _db = db;
     public List<ProductDto> GetList()
     {
         return _db.Products.ToList();
@@ -26,11 +26,11 @@ public class ProductService(NpgSlqContext db) : IBaseService<ProductDto>
         return _db.Products.Where(product => product.Title == title).ToList();
     }
 
-    public bool Add(ProductDto entity)
+    public int Add(ProductDto entity)
     {
         _db.Products.Add(entity);
         _db.SaveChanges();
-        return true;
+        return entity.Id;
     }
 
     public bool Delete(int id)

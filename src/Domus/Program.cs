@@ -1,5 +1,10 @@
 using System.Text;
 using Domus.Models;
+using Domus.Models.Dish;
+using Domus.Models.Menu;
+using Domus.Models.Product;
+using Domus.Models.Recipe;
+using Domus.Models.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,11 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 //IConfigurationSection configurationSection = builder.Configuration.GetSection("AppSettings");
 //AppSettings settings = configurationSection.Get<AppSettings>();// ?? throw new Exception("Fatal no appsettings.json");
 //byte[] signingKey = Encoding.UTF8.GetBytes(settings.EncryptionKey);
-var redisHost = builder.Configuration["Redis:Host"] ?? "localhost";
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = $"{redisHost}:6379";
-});
+// var redisHost = builder.Configuration["Redis:Host"] ?? "localhost";
+// builder.Services.AddStackExchangeRedisCache(options =>
+// {
+//     options.Configuration = $"{redisHost}:6379";
+// });
+builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
 {
@@ -26,6 +32,13 @@ builder.Services.AddDbContext<NpgSqlContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"));
 });
+
+builder.Services.AddTransient<MenuService>();
+builder.Services.AddTransient<RecipeService>();
+builder.Services.AddTransient<UserService>();
+builder.Services.AddTransient<ProductService>();
+builder.Services.AddTransient<DishService>();
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();

@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Domus.Models.Menu;
 
-public class MenuService(NpgSlqContext db) : IBaseService<MenuDto>
+public class MenuService(NpgSqlContext db) : IBaseService<MenuDto>
 {
-    private readonly NpgSlqContext _db = db;
+    private readonly NpgSqlContext _db = db;
 
     public List<MenuDto> GetList()
     {
@@ -27,11 +27,11 @@ public class MenuService(NpgSlqContext db) : IBaseService<MenuDto>
         return _db.Menus.Where(menu => menu.Title == title).ToList();
     }
 
-    public bool Add(MenuDto entity)
+    public int Add(MenuDto entity)
     {
         _db.Menus.Add(entity);
         _db.SaveChanges();
-        return true;
+        return entity.Id;
     }
 
     public bool Delete(int id)
