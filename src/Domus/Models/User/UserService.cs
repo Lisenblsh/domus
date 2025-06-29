@@ -1,11 +1,15 @@
 using System;
+using System.Text;
+using Domus.FrontendModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domus.Models.User;
 
-public class UserService(NpgSqlContext db): IBaseService<UserDto>
+public class UserService(NpgSqlContext db, IPasswordHasher<UserCredentialsDto> passwordHasher): IBaseService<UserDto>
 {
     public readonly NpgSqlContext _db = db;
+    public readonly IPasswordHasher<UserCredentialsDto> _passwordHasher = passwordHasher;
 
     public bool CheckUserAccess(int? id)
     {
@@ -19,9 +23,44 @@ public class UserService(NpgSqlContext db): IBaseService<UserDto>
         }
     }
 
-    public bool CheckUser(string username)
+    private bool CheckUser(string username)
     {
         return _db.UserCredentials.Where(user => user.Username == username).Any();
+    }
+
+    public int CreateUser(CreateUserDto userData)
+    {
+        if (CheckUser(userData.Username))
+            throw new NotImplementedException("user in db");
+
+        var credentials = new UserCredentialsDto(userData.Username);
+
+        credentials.PasswordHash = _passwordHasher.HashPassword(credentials, userData.Password);
+
+        var user = new UserDto
+        {
+            Name = userData.Name,
+            Credentials = credentials
+        };
+
+        _db.Users.Add(user);
+        _db.SaveChanges();
+
+        return user.Id;
+    }
+
+    public int ValidateUser(FrontendModels.UserCredentialsDto userData)
+    {
+        var user = _db.UserCredentials.FirstOrDefault(user => user.Username == userData.Username);
+        if (user == null)
+            throw new NotImplementedException("user == null");
+
+        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, userData.Password);
+
+        if (result == PasswordVerificationResult.Failed)
+            throw new NotImplementedException("user validate fail");
+
+        return user.Id;
     }
 
     public List<UserDto> GetList()
@@ -46,10 +85,7 @@ public class UserService(NpgSqlContext db): IBaseService<UserDto>
 
     public int Add(UserDto entity)
     {
-        
-        _db.Users.Add(entity);
-        _db.SaveChanges();
-        return entity.Id;
+        throw new NotSupportedException("instead this use CreateUser(..)");
     }
 
     public bool Delete(int id)

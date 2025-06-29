@@ -5,5 +5,5 @@ namespace Domus.Models;
 public class Session
 {
     [Key]
-    public string Id { get; set; }
+    public string Id { get; set; } = null!;
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Domus.Models;
 using Domus.Models.User;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,32 +13,25 @@ namespace Domus.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class LoginController(NpgSqlContext db, UserService userService) : ControllerBase
+    public class LoginController(NpgSqlContext db, UserService userService, IPasswordHasher<UserCredentialsDto> passwordHasher) : ControllerBase
     {
         private readonly NpgSqlContext _db = db;
         private readonly UserService _userService = userService;
+        private readonly IPasswordHasher<UserCredentialsDto> _passwordHasher = passwordHasher;
 
         [HttpPost("login")]
         public async Task<IActionResult> LogIn([FromBody] FrontendModels.UserCredentialsDto? userCredentials = null)
         {   if (userCredentials == null) return BadRequest();
 
-            var user = await _db.UserCredentials.FirstOrDefaultAsync(user => user.Username == userCredentials.Username
-                                                && user.Password == userCredentials.Password);
-            if (user != null)
-            {
-                HttpContext.Session.SetInt32("userId", user.Id);
-                return Ok($"old - {user.Id} {HttpContext.Session.Id}");
-            }
-            
-            return Unauthorized();
+            var userId = _userService.ValidateUser(userCredentials);
+            HttpContext.Session.SetInt32("userId", userId);
+            return Ok($"old - {userId} {HttpContext.Session.Id}");
         }
 
         [HttpGet("logout")]
         public async Task<IActionResult> LogOut()
         {
             var userId = HttpContext.Session.GetInt32("userId");
-
-            
 
             HttpContext.Session.Clear();
 
@@ -49,14 +43,7 @@ namespace Domus.Controllers
         {
             if(userCredentials == null) return BadRequest();
 
-            if (_userService.CheckUser(userCredentials.Username))
-                return Conflict($"User with login {userCredentials.Username} in DB");
-
-            var userId = _userService.Add(new UserDto
-            {
-                Name = userCredentials.Name,
-                Credentials = new UserCredentialsDto(userCredentials.Username, userCredentials.Password)
-            });
+            var userId = _userService.CreateUser(userCredentials);
             
             return Ok($"new - {userId} {HttpContext.Session.Id}");
         }

@@ -5,6 +5,7 @@ using Domus.Models.Menu;
 using Domus.Models.Product;
 using Domus.Models.Recipe;
 using Domus.Models.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +40,7 @@ builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<ProductService>();
 builder.Services.AddTransient<DishService>();
 
+builder.Services.AddScoped<IPasswordHasher<UserCredentialsDto>, PasswordHasher<UserCredentialsDto>>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
